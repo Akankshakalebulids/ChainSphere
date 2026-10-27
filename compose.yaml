@@ -1,0 +1,74 @@
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Copy .env.example to .env and set MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DB:-smartchain_db}
+      MYSQL_USER: ${MYSQL_USER:-smartchain}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Copy .env.example to .env and set MYSQL_PASSWORD}
+    ports:
+      - "${SMARTCHAIN_DB_PORT:-3306}:3306"
+    volumes:
+      - smartchain_mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root --password=\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    networks:
+      - smartchain_network
+
+  backend:
+    image: smartchain-backend:${SMARTCHAIN_IMAGE_TAG:-local}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      MYSQL_USER: ${MYSQL_USER:-smartchain}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Copy .env.example to .env and set MYSQL_PASSWORD}
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_DB: ${MYSQL_DB:-smartchain_db}
+    ports:
+      - "${SMARTCHAIN_API_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    networks:
+      - smartchain_network
+
+  frontend:
+    image: smartchain-frontend:${SMARTCHAIN_IMAGE_TAG:-local}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${SMARTCHAIN_WEB_PORT:-3000}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - smartchain_network
+
+volumes:
+  smartchain_mysql_data:
+    driver: local
+
+networks:
+  smartchain_network:
+    driver: bridge
