@@ -1,7 +1,8 @@
+```groovy
+
 pipeline {
 agent any
 
-```
 options {
     disableConcurrentBuilds()
 }
@@ -119,6 +120,5 @@ post {
         echo 'Pipeline finished. The existing MySQL Compose volume was not removed.'
     }
 }
-```
 
 }
