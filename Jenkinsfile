@@ -51,10 +51,10 @@ pipeline {
         }
 
         stage('Validate Compose configuration') {
-            steps {
-                bat 'docker compose --env-file .env.example config --quiet'
-            }
-        }
+    steps {
+        bat 'docker compose --env-file .env.example config --quiet'
+    }
+}
 
         stage('Build application images') {
             steps {
