@@ -36,7 +36,7 @@ pipeline {
     }
 
     environment {
-        SMARTCHAIN_IMAGE_TAG = "ci-${BUILD_NUMBER}"
+        COMPOSE_EXE = 'C:\\Users\\ak\\AppData\\Local\\Programs\\DockerDesktop\\resources\\cli-plugins\\docker-compose.exe'
         SMARTCHAIN_DEMO_FAIL = "${params.SIMULATE_TEST_FAILURE ? '1' : '0'}"
     }
 
@@ -60,27 +60,25 @@ pipeline {
         stage('Validate Compose configuration') {
             steps {
                 bat '''
-                    echo Checking Docker Compose availability...
-                    docker compose version
-
-                    echo Checking Docker Compose help...
-                    docker compose --help
-
-                    echo Validating Compose configuration...
-                    docker compose --env-file .env.example config --quiet
+                    "C:\\Users\\ak\\AppData\\Local\\Programs\\DockerDesktop\\resources\\cli-plugins\\docker-compose.exe" version
+                    "C:\\Users\\ak\\AppData\\Local\\Programs\\DockerDesktop\\resources\\cli-plugins\\docker-compose.exe" --env-file .env.example config --quiet
                 '''
             }
         }
 
         stage('Build application images') {
             steps {
-                bat 'docker compose --env-file .env.example build backend frontend'
+                bat '''
+                    "C:\\Users\\ak\\AppData\\Local\\Programs\\DockerDesktop\\resources\\cli-plugins\\docker-compose.exe" --env-file .env.example build backend frontend
+                '''
             }
         }
 
         stage('Run backend tests') {
             steps {
-                bat 'docker compose --env-file .env.example run --no-deps --rm -e DATABASE_URL=sqlite:////tmp/smartchain_ci.db -e SMARTCHAIN_DEMO_FAIL=%SMARTCHAIN_DEMO_FAIL% backend python -m pytest tests/ -v'
+                bat '''
+                    "C:\\Users\\ak\\AppData\\Local\\Programs\\DockerDesktop\\resources\\cli-plugins\\docker-compose.exe" --env-file .env.example run --no-deps --rm -e DATABASE_URL=sqlite:////tmp/smartchain_ci.db -e SMARTCHAIN_DEMO_FAIL=%SMARTCHAIN_DEMO_FAIL% backend python -m pytest tests/ -v
+                '''
             }
         }
 
@@ -96,7 +94,9 @@ pipeline {
                         variable: 'MYSQL_PASSWORD'
                     )
                 ]) {
-                    bat 'docker compose --env-file .env.example up --detach --no-build'
+                    bat '''
+                        "C:\\Users\\ak\\AppData\\Local\\Programs\\DockerDesktop\\resources\\cli-plugins\\docker-compose.exe" --env-file .env.example up --detach --no-build
+                    '''
                 }
             }
         }
