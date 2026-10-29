@@ -94,9 +94,7 @@ pipeline {
                         variable: 'MYSQL_PASSWORD'
                     )
                 ]) {
-                    bat '''
-                        "C:\\Users\\ak\\AppData\\Local\\Programs\\DockerDesktop\\resources\\cli-plugins\\docker-compose.exe" --env-file .env.example up --detach --no-build
-                    '''
+                    bat "C:\Users\ak\AppData\Local\Programs\DockerDesktop\resources\cli-plugins\docker-compose.exe" --env-file .env up --detach --no-build
                 }
             }
         }
